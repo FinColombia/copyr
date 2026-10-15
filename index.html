@@ -286,7 +286,27 @@
     // GOOGLE DRIVE VIDEO CONFIGURATION
     // CHANGE THE URL BELOW TO YOUR PUBLIC GOOGLE DRIVE VIDEO.
     // =========================================================
+  const SUBTITLE_URL =
+  "https://raw.githubusercontent.com/FinColombia/copyr/b160a8ab67ebc2f5de4cf67d83cd1768c9745b5a/copyright-video-subtitle.vtt";
 
+    function addSubtitles() {
+      // Needed because the .vtt is on a different origin than the page.
+      player.crossOrigin = "anonymous";
+    
+      const track = document.createElement("track");
+      track.kind = "subtitles";
+      track.label = "English";   // change if the subtitles are in another language
+      track.srclang = "en";      // e.g. "es" for Spanish
+      track.src = SUBTITLE_URL;
+      track.default = true;
+    
+      player.appendChild(track);
+      track.track.mode = "showing";
+    
+      track.addEventListener("error", () => {
+        console.error("Subtitle file could not be loaded:", SUBTITLE_URL);
+      });
+    }
     const VIDEO_URL = "https://github.com/FinColombia/copyr/blob/411aa8cc45ba1ab98fb0c68610f644b21b4c2d58/copyright-video.mp4";
 
     // Keep your existing Google Apps Script endpoint unchanged.
