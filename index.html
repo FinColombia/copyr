@@ -1431,39 +1431,39 @@
     // LOAD GOOGLE DRIVE VIDEO
     // =========================================================
 
-    if (VIDEO_URL && !VIDEO_URL.includes("copyright-video.mp4")) {
-      player.src = VIDEO_URL;
-      player.load();
-        } else {
-          playPauseBtn.disabled = true;
-          playPauseBtn.textContent = "Set video link";
-          playbackStatus.textContent = "Set VIDEO_URL to your video file.";
-        }
-
-updateProgress();
     const SUBTITLE_URL =
-  "https://raw.githubusercontent.com/FinColombia/copyr/b160a8ab67ebc2f5de4cf67d83cd1768c9745b5a/copyright-video-subtitle.vtt";
+      "https://raw.githubusercontent.com/FinColombia/copyr/b160a8ab67ebc2f5de4cf67d83cd1768c9745b5a/copyright-video-subtitle.vtt";
 
     function addSubtitles() {
-      // Needed because the .vtt is on a different origin than the page.
+      // Must be set before player.src; raw.githubusercontent.com sends CORS headers.
       player.crossOrigin = "anonymous";
-    
+
       const track = document.createElement("track");
       track.kind = "subtitles";
       track.label = "English";   // change if the subtitles are in another language
       track.srclang = "en";      // e.g. "es" for Spanish
       track.src = SUBTITLE_URL;
       track.default = true;
-    
-      player.appendChild(track);
-      track.track.mode = "showing";
-    
+
       track.addEventListener("error", () => {
         console.error("Subtitle file could not be loaded:", SUBTITLE_URL);
       });
+
+      player.appendChild(track);
+      track.track.mode = "showing";
     }
 
+    if (VIDEO_URL && !VIDEO_URL.includes("YOUR_FILE_ID")) {
+      addSubtitles();          // 1. crossOrigin + subtitle track
+      player.src = VIDEO_URL;  // 2. then the video source
+      player.load();
+    } else {
+      playPauseBtn.disabled = true;
+      playPauseBtn.textContent = "Set video link";
+      playbackStatus.textContent = "Set VIDEO_URL to your video file.";
+    }
 
+    updateProgress();
   </script>
 </body>
 </html>
