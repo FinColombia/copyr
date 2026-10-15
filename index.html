@@ -1431,16 +1431,16 @@
     // LOAD GOOGLE DRIVE VIDEO
     // =========================================================
 
-    if (!DRIVE_VIDEO_URL.includes("./copyright-video.mp4")) {
-      player.src = DRIVE_VIDEO_URL;
+    if (VIDEO_URL && !VIDEO_URL.includes("YOUR_FILE_ID")) {
+      player.src = VIDEO_URL;
       player.load();
-    } else {
-      playPauseBtn.disabled = true;
-      playPauseBtn.textContent = "Set video link";
+        } else {
+          playPauseBtn.disabled = true;
+          playPauseBtn.textContent = "Set video link";
+          playbackStatus.textContent = "Set VIDEO_URL to your video file.";
+        }
 
-      playbackStatus.textContent =
-        "Replace YOUR_FILE_ID in DRIVE_VIDEO_URL with your Google Drive video file ID.";
-    }
+updateProgress();
 
     updateProgress();
   </script>
