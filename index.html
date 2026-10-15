@@ -2,1466 +2,543 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Copyright and Digital Citizenship</title>
-
-  <style>
-    :root {
-      font-family: Arial, sans-serif;
-      color: #202124;
-      background: #f5f7fb;
-    }
-
-    body {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.5;
-    }
-
-    h1 { margin-bottom: 5px; }
-    .muted { color: #5f6368; }
-
-    .panel {
-      background: white;
-      border: 1px solid #dadce0;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 18px 0;
-    }
-
-    .video-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #111;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    #player {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #111;
-      border: 0;
-      pointer-events: none;
-    }
-
-    #playerShield {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      background: transparent;
-    }
-
-    .field {
-      display: inline-block;
-      width: 100%;
-      max-width: 340px;
-      margin: 8px 12px 8px 0;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 11px;
-      border: 1px solid #9aa0a6;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-
-    select {
-      box-sizing: border-box;
-      padding: 11px;
-      border: 1px solid #9aa0a6;
-      border-radius: 6px;
-      font-size: 16px;
-      background: white;
-    }
-
-    .video-controls {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    #playbackStatus { flex-basis: 100%; }
-
-    .progress-track {
-      height: 8px;
-      background: #e8eaed;
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 10px 0;
-    }
-
-    #progressBar {
-      width: 0%;
-      height: 100%;
-      background: #1a73e8;
-      transition: width .2s;
-    }
-
-    #questionPanel {
-      display: none;
-      border: 2px solid #1a73e8;
-    }
-
-    #questionNumber {
-      color: #1a73e8;
-      font-weight: bold;
-    }
-
-    .answer {
-      display: block;
-      padding: 12px;
-      margin: 9px 0;
-      border: 1px solid #dadce0;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .answer:hover { background: #f1f5fe; }
-    .answer input { margin-right: 10px; }
-
-    button {
-      background: #1a73e8;
-      color: white;
-      padding: 12px 18px;
-      border: 0;
-      border-radius: 7px;
-      font-size: 15px;
-      cursor: pointer;
-      margin: 5px 5px 5px 0;
-    }
-
-    button:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-    }
-
-    #submitPanel, #restartBtn { display: none; }
-
-    #status {
-      white-space: pre-line;
-      padding: 12px 0;
-      font-weight: bold;
-    }
-
-    .secondary-button { background: #5f6368; }
-    #restartBtn { background: #188038; }
-
-    @media (max-width: 600px) {
-      body { padding: 10px; }
-      .panel { padding: 14px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copyright and Digital Citizenship</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#202124;background:#f5f7fb}
+body{max-width:1000px;margin:auto;padding:20px;line-height:1.5}
+h1{margin-bottom:5px}.muted{color:#5f6368}
+.panel{background:white;border:1px solid #dadce0;border-radius:12px;padding:20px;margin:18px 0}
+.video-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}
+#player{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#111;border:0;pointer-events:none}
+#playerShield{position:absolute;inset:0;z-index:2;background:transparent}
+.field{display:inline-block;width:100%;max-width:340px;margin:8px 12px 8px 0}
+input[type=text],select{box-sizing:border-box;padding:11px;border:1px solid #9aa0a6;border-radius:6px;font-size:16px;background:white}
+input[type=text]{width:100%}
+.video-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px}
+#playbackStatus{flex-basis:100%}
+.progress-track{height:8px;background:#e8eaed;border-radius:8px;overflow:hidden;margin:10px 0}
+#progressBar{width:0;height:100%;background:#1a73e8;transition:width .2s}
+#questionPanel{display:none;border:2px solid #1a73e8}
+#questionNumber{color:#1a73e8;font-weight:bold}
+.answer{display:block;padding:12px;margin:9px 0;border:1px solid #dadce0;border-radius:8px;cursor:pointer}
+.answer:hover{background:#f1f5fe}.answer input{margin-right:10px}
+button{background:#1a73e8;color:white;padding:12px 18px;border:0;border-radius:7px;font-size:15px;cursor:pointer;margin:5px 5px 5px 0}
+button:disabled{opacity:.45;cursor:not-allowed}
+#submitPanel,#restartBtn{display:none}
+#status{white-space:pre-line;padding:12px 0;font-weight:bold}
+.secondary-button{background:#5f6368}#restartBtn{background:#188038}
+@media(max-width:600px){body{padding:10px}.panel{padding:14px}}
+</style>
 </head>
-
 <body>
-  <h1>Copyright and Digital Citizenship</h1>
-  <p class="muted">Interactive Video Assessment</p>
-
-  <section class="panel">
-    <h2>About you</h2>
-
-    <div class="field">
-      <label for="givenName">Given name</label>
-      <input id="givenName" type="text" maxlength="80"
-        autocomplete="given-name"
-        placeholder="Enter your given name" required>
-    </div>
-
-    <div class="field">
-      <label for="lastName">Last name</label>
-      <input id="lastName" type="text" maxlength="80"
-        autocomplete="family-name"
-        placeholder="Enter your last name" required>
-    </div>
-
-    <div class="field">
-      <label for="studentClass">Class</label>
-      <select id="studentClass" required
-        style="width:100%;max-width:340px;">
-        <option value="">Select your class</option>
-        <option value="3A">3A</option>
-        <option value="3B">3B</option>
-        <option value="3C">3C</option>
-        <option value="4A">4A</option>
-        <option value="4B">4B</option>
-        <option value="4C">4C</option>
-      </select>
-    </div>
-  </section>
-
-  <section class="panel" id="videoPanel">
-    <h2>Watch the video</h2>
-
-    <p class="muted">
-      Watch carefully. The video pauses automatically when it is time
-      to answer a question. Select an answer to save it and continue.
-      You can return to previous questions, but you cannot skip ahead.
-    </p>
-
-    <div class="video-wrap">
-      <video id="player" playsinline preload="metadata">
-        Your browser does not support HTML5 video.
-      </video>
-      <div id="playerShield" aria-hidden="true"></div>
-    </div>
-
-    <div class="video-controls">
-      <button id="playPauseBtn" type="button" disabled>
-        Loading video…
-      </button>
-
-      <label for="playbackSpeed">Playback speed</label>
-      <select id="playbackSpeed" disabled>
-        <option value="0.75">0.75×</option>
-        <option value="1" selected>1× (Normal)</option>
-        <option value="1.25">1.25×</option>
-        <option value="1.5">1.5×</option>
-      </select>
-
-      <p id="playbackStatus" class="muted" aria-live="polite">
-        Loading video player…
-      </p>
-    </div>
-
-    <h3 id="progressText">Questions answered: 0 / 20</h3>
-
-    <div class="progress-track">
-      <div id="progressBar"></div>
-    </div>
-  </section>
-
-  <section id="questionPanel" class="panel" aria-live="polite">
-    <div id="questionNumber"></div>
-    <h2 id="questionText"></h2>
-    <p id="questionTimestamp" class="muted"></p>
-
-    <div id="answerOptions"></div>
-
-    <p class="muted">
-      Select an answer to save it and continue the video. Use Previous
-      Question to revisit an earlier question.
-    </p>
-
-    <button id="previousBtn" type="button" class="secondary-button">
-      Previous question
-    </button>
-
-    <button id="continueBtn" type="button" disabled>
-      Save answer and continue video
-    </button>
-  </section>
-
-  <section id="submitPanel" class="panel">
-    <h2 id="submitHeading">Submitting your quiz</h2>
-    <p id="submitMessage" aria-live="polite">
-      Your answers are being submitted automatically.
-    </p>
-
-    <button id="submitBtn" type="button" hidden>
-      Retry submission
-    </button>
-
-    <button id="restartBtn" type="button">
-      Restart quiz
-    </button>
-  </section>
-
-  <section class="panel">
-    <div id="status" role="status" aria-live="polite"></div>
-  </section>
-
-  <script>
-    // =========================================================
-    // GOOGLE DRIVE VIDEO CONFIGURATION
-    // CHANGE THE URL BELOW TO YOUR PUBLIC GOOGLE DRIVE VIDEO.
-    // =========================================================
-  
-    const VIDEO_URL = "https://github.com/FinColombia/copyr/blob/100a05e828bd8bf50ac731b3d4890ecd8455871c/copyright-video.mp4";
-    const SUBTITLE_URL = "https://github.com/FinColombia/copyr/blob/100a05e828bd8bf50ac731b3d4890ecd8455871c/copyright-video-subtitle.vtt";
-
-    // Keep your existing Google Apps Script endpoint unchanged.
-    const APPS_SCRIPT_URL =
-      "https://script.google.com/a/macros/glm.edu.co/s/AKfycbyvBy67ElrrK673NQ9AkjJszfasIYAB1e4egNmvxCQjei_LcoQ3hTVTHmIM6Wcmbzn9Og/exec";
-
-    // =========================================================
-    // QUESTIONS — ORIGINAL QUESTION CONTENT RETAINED
-    // =========================================================
-
-    const QUESTIONS = [
-      {
-        t: 85,
-        q: "Why might media be available online for free?",
-        a: [
-          "All online media belongs to the public.",
-          "The creator allows free access, the work is in the public domain, or someone shared it illegally.",
-          "Artists never earn money from their work.",
-          "Free media never has copyright protection."
-        ],
-        c: 1
-      },
-      {
-        t: 56,
-        q: "What does it mean when an artist chooses to share work for free?",
-        a: [
-          "Anyone can claim the work as their own.",
-          "The work automatically becomes public domain.",
-          "The artist has decided to allow people to access it for free.",
-          "The artist loses all rights to the work."
-        ],
-        c: 2
-      },
-      {
-        t: 51,
-        q: "How might an artist benefit from sharing work for free?",
-        a: [
-          "The artist may earn advertising revenue or build recognition.",
-          "The artist automatically loses copyright.",
-          "The artist must stop creating new work.",
-          "The artist gives ownership to every viewer."
-        ],
-        c: 0
-      },
-      {
-        t: 78,
-        q: "What does public domain mean?",
-        a: [
-          "A website where everyone uploads videos.",
-          "A place online that always requires payment.",
-          "A collection of illegally shared movies.",
-          "Work that is not protected by copyright."
-        ],
-        c: 3
-      },
-      {
-        t: 125,
-        q: "Why might an older creative work enter the public domain?",
-        a: [
-          "Every old work is automatically free immediately.",
-          "Its copyright protection may have expired.",
-          "Someone copied it without permission.",
-          "The internet removes copyright."
-        ],
-        c: 1
-      },
-      {
-        t: 112,
-        q: "What is copyright designed to encourage?",
-        a: [
-          "People to copy every song they enjoy.",
-          "Websites to offer all media for free.",
-          "Artists and creators to continue making original work.",
-          "Students to avoid creating digital projects."
-        ],
-        c: 2
-      },
-      {
-        t: 127,
-        q: "Why is sharing someone's copyrighted work without permission a fairness issue?",
-        a: [
-          "Every creator must charge money.",
-          "Only famous artists deserve protection.",
-          "Digital work cannot belong to anyone.",
-          "Creators deserve respect for their work and rights."
-        ],
-        c: 3
-      },
-      {
-        t: 138,
-        q: "Which action best demonstrates responsible digital citizenship?",
-        a: [
-          "Respecting creators' rights and avoiding unauthorized sharing.",
-          "Downloading any movie that is free.",
-          "Copying music because it is only for friends.",
-          "Ignoring copyright because a file is online."
-        ],
-        c: 0
-      },
-      {
-        t: 151,
-        q: "Which situation is copyright infringement?",
-        a: [
-          "Watching a film through an authorized service.",
-          "Reading a book in the public domain.",
-          "Sharing copyrighted media through a file-sharing site without permission.",
-          "Creating your own original song."
-        ],
-        c: 2
-      },
-      {
-        t: 163,
-        q: "Why could copying songs from a library CD to a phone be a problem?",
-        a: [
-          "Phones cannot store music.",
-          "Copying copyrighted music without permission can infringe copyright.",
-          "Libraries never lend music.",
-          "Music can only be played on CDs."
-        ],
-        c: 1
-      },
-      {
-        t: 179,
-        q: "What is a concern about websites streaming movies or songs without permission?",
-        a: [
-          "All streaming is illegal.",
-          "All online music is public domain.",
-          "Streaming always damages a device.",
-          "The site may be distributing copyrighted work illegally."
-        ],
-        c: 3
-      },
-      {
-        t: 200,
-        q: "A movie has just been released in theaters but is offered free on an unknown website. What should you think?",
-        a: [
-          "It must be public domain.",
-          "All new movies are free to copy.",
-          "It may have been shared without the creator's permission.",
-          "The website automatically owns the movie."
-        ],
-        c: 2
-      },
-      {
-        t: 205,
-        q: "Leo stores his own school documents in Google Drive. Is this the kind of use criticized in the video?",
-        a: [
-          "Yes, all online storage is illegal.",
-          "Yes, because school documents cannot be stored online.",
-          "No, because online storage cannot hold media.",
-          "No, the concern is sharing copyrighted media without permission."
-        ],
-        c: 3
-      },
-      {
-        t: 219,
-        q: "What is the best way to use a file-storage service responsibly?",
-        a: [
-          "Use it to share any movie with friends.",
-          "Store your files and share copyrighted work only when authorized.",
-          "Upload copies of every song you own.",
-          "Assume storage services make every file legal."
-        ],
-        c: 1
-      },
-      {
-        t: 237,
-        q: "A student records a song from a streaming service and shares it without permission. What applies?",
-        a: [
-          "Recording makes a song public domain.",
-          "Sharing is always allowed among friends.",
-          "Recording and sharing copyrighted music without permission can be infringement.",
-          "Copyright only applies to movies."
-        ],
-        c: 2
-      },
-      {
-        t: 248,
-        q: "What is one benefit of getting media from trustworthy, authorized sources?",
-        a: [
-          "You respect creators and obtain content legally.",
-          "You can copy every file you find.",
-          "All content becomes free.",
-          "You no longer need to follow rules."
-        ],
-        c: 0
-      },
-      {
-        t: 263,
-        q: "What is another possible consequence of copyright infringement?",
-        a: [
-          "Automatic permission to use the work.",
-          "Penalties or money that may have to be paid.",
-          "Ownership of the original work.",
-          "Free access to every streaming service."
-        ],
-        c: 1
-      },
-      {
-        t: 274,
-        q: "What is malware?",
-        a: [
-          "A tool for creating original music.",
-          "A type of copyright license.",
-          "A website that sells legal movies.",
-          "Harmful software that can damage devices or access personal information."
-        ],
-        c: 3
-      },
-      {
-        t: 281,
-        q: "What is one danger of malware on an illegal file-sharing site?",
-        a: [
-          "It always improves device security.",
-          "It makes every download legal.",
-          "It may damage your device or seek your personal information.",
-          "It automatically protects artists' work."
-        ],
-        c: 2
-      },
-      {
-        t: 291,
-        q: "A student wants to use a photograph in a school presentation. What is the best first step?",
-        a: [
-          "Assume every image online is free to use.",
-          "Check the image's permission or license and follow its conditions.",
-          "Remove the photographer's name.",
-          "Upload the image to several websites."
-        ],
-        c: 1
-      }
-    ];
-
-    const QUESTION_TIMESTAMPS = [
-       99,  // 1
-       63,  // 2
-       59,  // 3
-       74,  // 4
-       78,  // 5
-      121,  // 6
-      128,  // 7
-      141,  // 8
-      159,  // 9
-      174,  // 10
-      184,  // 11
-      198,  // 12
-      225,  // 13
-      229,  // 14
-      243,  // 15
-      259,  // 16
-      271,  // 17
-      284,  // 18
-      289,  // 19
-      298   // 20
-    ];
-
-    if (QUESTIONS.length !== QUESTION_TIMESTAMPS.length) {
-      throw new Error(
-        "Timestamp count does not match the number of questions."
-      );
-    }
-
-    QUESTIONS.forEach((question, index) => {
-      question.t = QUESTION_TIMESTAMPS[index];
-    });
-
-    const finalQuestionIndex = QUESTIONS.length - 1;
-
-    QUESTIONS[finalQuestionIndex] = {
-      ...QUESTIONS[finalQuestionIndex],
-      t: 298,
-      q: "Where can we find media legally?",
-      a: [
-        "Download any free file you find.",
-        "We can find free images on image banks",
-        "Share copyrighted files with friends.",
-        "Assume every website respects artists' rights."
-      ],
-      c: 1
-    };
-
-    // =========================================================
-    // STATE
-    // =========================================================
-
-    const player = document.getElementById("player");
-
-    let playerReady = false;
-    let currentQuestion = -1;
-    let answers = Array(QUESTIONS.length).fill(-1);
-    let shown = Array(QUESTIONS.length).fill(false);
-    let submitted = false;
-    let submissionInProgress = false;
-    let assessmentStarted = false;
-    let attemptNumber = 1;
-
-    let currentOptionMap = [];
-
-    let lastAllowedTime = 0;
-    let lastMonitorTime = 0;
-    let lastMonitorWallTime = 0;
-    let playbackRate = 1;
-    let correctingSeek = false;
-    let correctionTimer = null;
-    let monitorInterval = null;
-
-    const MAX_PLAYBACK_RATE = 1.5;
-    const PASS_THRESHOLD = 80;
-
-    const playbackSpeedSelect =
-      document.getElementById("playbackSpeed");
-    const questionPanel = document.getElementById("questionPanel");
-    const questionText = document.getElementById("questionText");
-    const questionNumber = document.getElementById("questionNumber");
-    const questionTimestamp =
-      document.getElementById("questionTimestamp");
-    const answerOptions = document.getElementById("answerOptions");
-    const continueBtn = document.getElementById("continueBtn");
-    const previousBtn = document.getElementById("previousBtn");
-    const submitPanel = document.getElementById("submitPanel");
-    const submitBtn = document.getElementById("submitBtn");
-    const restartBtn = document.getElementById("restartBtn");
-    const submitHeading = document.getElementById("submitHeading");
-    const submitMessage = document.getElementById("submitMessage");
-    const statusBox = document.getElementById("status");
-    const playbackStatus = document.getElementById("playbackStatus");
-    const playPauseBtn = document.getElementById("playPauseBtn");
-    const videoPanel = document.getElementById("videoPanel");
-
-    const chronologicalQuestionIndexes = QUESTIONS
-      .map((q, i) => i)
-      .sort((a, b) => {
-        const timeA = Number(QUESTIONS[a].t);
-        const timeB = Number(QUESTIONS[b].t);
-        return timeA - timeB || a - b;
-      });
-
-    // =========================================================
-    // GENERAL HELPERS
-    // =========================================================
-
-    function formatTime(seconds) {
-      const s = Math.max(0, Math.floor(Number(seconds) || 0));
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-
-      return String(m).padStart(2, "0") + ":" +
-             String(r).padStart(2, "0");
-    }
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function updateProgress() {
-      const count = answers.filter(a => a !== -1).length;
-
-      document.getElementById("progressText").textContent =
-        "Questions answered: " + count + " / " + QUESTIONS.length;
-
-      const percentage = QUESTIONS.length
-        ? count / QUESTIONS.length * 100
-        : 0;
-
-      document.getElementById("progressBar").style.width =
-        percentage + "%";
-    }
-
-    function validateStudentDetails() {
-      const givenName =
-        document.getElementById("givenName").value.trim();
-      const lastName =
-        document.getElementById("lastName").value.trim();
-      const studentClass =
-        document.getElementById("studentClass").value;
-
-      if (!givenName || !lastName ||
-          !["3A", "3B", "3C", "4A", "4B", "4C"].includes(studentClass)) {
-        playbackStatus.textContent =
-          "Enter your given name, last name, and class before starting.";
-
-        if (!givenName) {
-          document.getElementById("givenName").focus();
-        } else if (!lastName) {
-          document.getElementById("lastName").focus();
-        } else {
-          document.getElementById("studentClass").focus();
-        }
-
-        return false;
-      }
-
-      return true;
-    }
-
-    function nextDueQuestionIndex(seconds) {
-      for (const index of chronologicalQuestionIndexes) {
-        if (answers[index] !== -1) continue;
-
-        if (Number(QUESTIONS[index].t) <= seconds) {
-          return index;
-        }
-      }
-
-      return -1;
-    }
-
-    function resetPlaybackAnchor(time) {
-      const safeTime = Number(time) || 0;
-
-      lastAllowedTime = safeTime;
-      lastMonitorTime = safeTime;
-      lastMonitorWallTime = Date.now();
-    }
-
-    function scrollToVideo() {
-      videoPanel.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
-
-    function scrollToQuestion() {
-      questionPanel.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }
-
-    // =========================================================
-    // CONTROLLED SEEKING
-    // =========================================================
-
-    function seekToQuestion(index) {
-      if (!playerReady) return;
-
-      const targetTime = Number(QUESTIONS[index].t) || 0;
-
-      if (correctionTimer !== null) {
-        clearTimeout(correctionTimer);
-        correctionTimer = null;
-      }
-
-      correctingSeek = true;
-
-      try {
-        player.pause();
-        player.currentTime = targetTime;
-      } catch (e) {
-        correctingSeek = false;
-        return;
-      }
-
-      resetPlaybackAnchor(targetTime);
-
-      correctionTimer = setTimeout(() => {
-        let actualTime = targetTime;
-
-        try {
-          actualTime = player.currentTime;
-        } catch (e) {}
-
-        resetPlaybackAnchor(actualTime);
-        correctingSeek = false;
-        correctionTimer = null;
-      }, 600);
-    }
-
-    // =========================================================
-    // DISPLAY QUESTIONS
-    // =========================================================
-
-    function showQuestion(index) {
-      currentQuestion = index;
-      shown[index] = true;
-
-      const q = QUESTIONS[index];
-      const chronologicalPosition =
-        chronologicalQuestionIndexes.indexOf(index);
-
-      questionNumber.textContent =
-        "QUESTION " + (chronologicalPosition + 1) +
-        " OF " + QUESTIONS.length;
-
-      questionText.textContent = q.q;
-      questionTimestamp.textContent =
-        "Video timestamp: " + formatTime(q.t);
-
-      answerOptions.replaceChildren();
-
-      currentOptionMap = shuffleArray(
-        q.a.map((text, originalIndex) => ({
-          text: text,
-          originalIndex: originalIndex
-        }))
-      );
-
-      currentOptionMap.forEach((option, displayIndex) => {
-        const label = document.createElement("label");
-        label.className = "answer";
-
-        const radio = document.createElement("input");
-        radio.type = "radio";
-        radio.name = "currentAnswer";
-        radio.value = String(displayIndex);
-
-        if (answers[index] === option.originalIndex) {
-          radio.checked = true;
-        }
-
-        radio.addEventListener("change", () => {
-          continueBtn.disabled = false;
-          saveCurrentAnswerAndContinue();
-        });
-
-        label.appendChild(radio);
-        label.appendChild(
-          document.createTextNode(
-            String.fromCharCode(65 + displayIndex) + ". " + option.text
-          )
-        );
-
-        answerOptions.appendChild(label);
-      });
-
-      previousBtn.disabled = chronologicalPosition <= 0;
-      continueBtn.disabled = answers[index] === -1;
-
-      questionPanel.style.display = "block";
-      playPauseBtn.disabled = true;
-      playPauseBtn.textContent = "Paused for question";
-
-      scrollToQuestion();
-
-      playbackStatus.textContent =
-        "Video paused at " + formatTime(q.t) +
-        ". Select an answer to continue.";
-    }
-
-    function checkVideoTime() {
-      if (!playerReady || submitted || submissionInProgress ||
-          currentQuestion !== -1 || correctingSeek) {
-        return;
-      }
-
-      const seconds = player.currentTime;
-      const index = nextDueQuestionIndex(seconds);
-
-      if (index !== -1) {
-        player.pause();
-        resetPlaybackAnchor(seconds);
-        showQuestion(index);
-      }
-    }
-
-    // =========================================================
-    // PLAYBACK MONITOR
-    // =========================================================
-
-    function monitorPlayback() {
-      if (!playerReady || submitted || submissionInProgress ||
-          correctingSeek) {
-        return;
-      }
-
-      const currentTime = player.currentTime;
-
-      if (currentQuestion !== -1) {
-        resetPlaybackAnchor(currentTime);
-        return;
-      }
-
-      if (player.paused || player.ended) {
-        resetPlaybackAnchor(currentTime);
-        return;
-      }
-
-      const now = Date.now();
-
-      if (lastMonitorWallTime === 0) {
-        resetPlaybackAnchor(currentTime);
-        return;
-      }
-
-      const elapsed = Math.max(
-        0,
-        (now - lastMonitorWallTime) / 1000
-      );
-
-      const change = currentTime - lastMonitorTime;
-      const forwardAllowance = elapsed * playbackRate + 0.8;
-      const backwardAllowance = 0.8;
-
-      if (change > forwardAllowance ||
-          change < -backwardAllowance) {
-        const restoreTime = lastAllowedTime;
-
-        correctingSeek = true;
-
-        try {
-          player.currentTime = restoreTime;
-        } catch (e) {}
-
-        playbackStatus.textContent =
-          "Skipping and seeking are disabled. Use Previous question to revisit questions.";
-
-        if (correctionTimer !== null) {
-          clearTimeout(correctionTimer);
-        }
-
-        correctionTimer = setTimeout(() => {
-          if (playerReady && !submitted) {
-            let restoredTime = restoreTime;
-
-            try {
-              restoredTime = player.currentTime;
-            } catch (e) {}
-
-            resetPlaybackAnchor(restoredTime);
-          }
-
-          correctingSeek = false;
-          correctionTimer = null;
-        }, 500);
-
-        return;
-      }
-
-      lastAllowedTime = currentTime;
-      lastMonitorTime = currentTime;
-      lastMonitorWallTime = now;
-
-      checkVideoTime();
-    }
-
-    // Catch unauthorized seeks as soon as the browser reports them.
-    player.addEventListener("seeking", () => {
-      if (!playerReady || correctingSeek || submitted ||
-          submissionInProgress) {
-        return;
-      }
-
-      const restoreTime = lastAllowedTime;
-
-      correctingSeek = true;
-      player.pause();
-
-      try {
-        player.currentTime = restoreTime;
-      } catch (e) {}
-
-      playbackStatus.textContent =
-        "Seeking is disabled. Use Previous question to revisit questions.";
-
-      if (correctionTimer !== null) {
-        clearTimeout(correctionTimer);
-      }
-
-      correctionTimer = setTimeout(() => {
-        if (playerReady && !submitted) {
-          resetPlaybackAnchor(player.currentTime);
-        }
-
-        correctingSeek = false;
-        correctionTimer = null;
-      }, 500);
-    });
-
-    // =========================================================
-    // SAVE ANSWERS AND CONTINUE
-    // =========================================================
-
-    function saveCurrentAnswerAndContinue() {
-      if (currentQuestion === -1 || submitted ||
-          submissionInProgress) {
-        return;
-      }
-
-      const selected = answerOptions.querySelector(
-        'input[name="currentAnswer"]:checked'
-      );
-
-      if (!selected) return;
-
-      const displayIndex = Number(selected.value);
-      const selectedOption = currentOptionMap[displayIndex];
-
-      if (!selectedOption) return;
-
-      answers[currentQuestion] = selectedOption.originalIndex;
-
-      currentQuestion = -1;
-      questionPanel.style.display = "none";
-      continueBtn.disabled = true;
-
-      updateProgress();
-
-      if (answers.every(a => a !== -1)) {
-        submitPanel.style.display = "block";
-        submitHeading.textContent = "Submitting your quiz";
-        submitMessage.textContent =
-          "All questions answered. Your quiz is being submitted automatically.";
-
-        submitAnswers();
-        return;
-      }
-
-      const currentTime = player.currentTime;
-      const nextDue = nextDueQuestionIndex(currentTime);
-
-      if (nextDue !== -1) {
-        player.pause();
-        resetPlaybackAnchor(currentTime);
-        showQuestion(nextDue);
-        return;
-      }
-
-      playbackStatus.textContent = "Video playing.";
-      playPauseBtn.disabled = false;
-      playPauseBtn.textContent = "Pause video";
-
-      scrollToVideo();
-      resetPlaybackAnchor(player.currentTime);
-
-      player.play().catch(() => {
-        playbackStatus.textContent =
-          "Press Play video to continue.";
-        playPauseBtn.textContent = "Play video";
-      });
-    }
-
-    // Previous navigation is backward-only.
-    previousBtn.addEventListener("click", () => {
-      if (currentQuestion === -1 || submitted ||
-          submissionInProgress || !playerReady) {
-        return;
-      }
-
-      const position =
-        chronologicalQuestionIndexes.indexOf(currentQuestion);
-
-      if (position <= 0) return;
-
-      const previousIndex =
-        chronologicalQuestionIndexes[position - 1];
-
-      seekToQuestion(previousIndex);
-      showQuestion(previousIndex);
-    });
-
-    // Retained as an alternative way to save a selected answer.
-    continueBtn.addEventListener(
-      "click",
-      saveCurrentAnswerAndContinue
-    );
-
-    // =========================================================
-    // SUBMIT RESULTS TO GOOGLE APPS SCRIPT
-    // =========================================================
-
-    function submitAnswers() {
-      if (submitted || submissionInProgress) return;
-
-      if (!validateStudentDetails()) {
-        statusBox.textContent =
-          "Complete your student details before submitting.";
-        submitBtn.hidden = false;
-        return;
-      }
-
-      if (answers.some(a => a === -1)) {
-        statusBox.textContent =
-          "Some questions are still unanswered.";
-        submitBtn.hidden = true;
-        return;
-      }
-
-      submissionInProgress = true;
-      submitPanel.style.display = "block";
-      submitHeading.textContent = "Submitting your quiz";
-      submitMessage.textContent = "Submitting your answers…";
-      submitBtn.disabled = true;
-      submitBtn.hidden = true;
-      restartBtn.style.display = "none";
-      statusBox.textContent = "";
-
-      if (playerReady) {
-        try {
-          player.pause();
-        } catch (e) {}
-      }
-
-      playPauseBtn.disabled = true;
-      continueBtn.disabled = true;
-      previousBtn.disabled = true;
-      playbackSpeedSelect.disabled = true;
-
-      const givenName =
-        document.getElementById("givenName").value.trim();
-      const lastName =
-        document.getElementById("lastName").value.trim();
-
-      const submittedLastName = attemptNumber === 1
-        ? lastName
-        : lastName + " — Attempt " + attemptNumber;
-
-      const payload = {
-        givenName: givenName,
-        lastName: submittedLastName,
-        studentClass: document.getElementById("studentClass").value,
-        answers: answers.slice()
-      };
-
-      (async () => {
-        try {
-          // Preserve the existing static-hosting submission method.
-          // no-cors responses are opaque; this confirms only that fetch
-          // completed without a browser-reported network error.
-          await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8"
-            },
-            body: JSON.stringify(payload)
-          });
-
-          submissionInProgress = false;
-          submitted = true;
-
-          const score = answers.reduce((sum, answer, i) =>
-            sum + (answer === QUESTIONS[i].c ? 1 : 0), 0);
-
-          const total = QUESTIONS.length;
-          const scorePercentage = Math.round(score / total * 100);
-
-          submitHeading.textContent = "Submission sent";
-          submitMessage.textContent =
-            "Your answers have been sent to the school results system. " +
-            "Because the form is hosted outside Google Apps Script, the page " +
-            "cannot read the server's confirmation. If your teacher cannot " +
-            "find the result, please tell them before restarting.";
-
-          statusBox.textContent =
-            "Your score: " + score + " / " + total +
-            " (" + scorePercentage + "%).";
-
-          submitBtn.hidden = true;
-          submitBtn.disabled = false;
-
-          playPauseBtn.disabled = true;
-          playPauseBtn.textContent = "Assessment complete";
-          playbackSpeedSelect.disabled = true;
-
-          document.getElementById("givenName").disabled = true;
-          document.getElementById("lastName").disabled = true;
-          document.getElementById("studentClass").disabled = true;
-
-          questionPanel.style.display = "none";
-          playbackStatus.textContent =
-            "Assessment complete. Thank you.";
-
-          if (Number.isFinite(scorePercentage) &&
-              scorePercentage < PASS_THRESHOLD) {
-            restartBtn.style.display = "inline-block";
-
-            submitMessage.textContent =
-              "Your score is below 80%. Restart the quiz and try again.";
-          } else {
-            restartBtn.style.display = "none";
-          }
-
-          if (monitorInterval !== null) {
-            clearInterval(monitorInterval);
-            monitorInterval = null;
-          }
-
-          if (correctionTimer !== null) {
-            clearTimeout(correctionTimer);
-            correctionTimer = null;
-          }
-
-          submitPanel.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-
-        } catch (error) {
-          handleSubmissionFailure(error);
-        }
-      })();
-    }
-
-    function handleSubmissionFailure(error) {
-      submissionInProgress = false;
-
-      submitHeading.textContent = "Submission unsuccessful";
-      submitMessage.textContent =
-        "Your answers remain on this page. Please retry.";
-
-      statusBox.textContent =
-        error && error.message
-          ? error.message
-          : "An unexpected error occurred during submission.";
-
-      submitBtn.textContent = "Retry submission";
-      submitBtn.hidden = false;
-      submitBtn.disabled = false;
-      restartBtn.style.display = "none";
-
-      playPauseBtn.disabled = true;
-      playbackSpeedSelect.disabled = true;
-    }
-
-    submitBtn.addEventListener("click", submitAnswers);
-
-    // =========================================================
-    // RESTART QUIZ
-    // =========================================================
-
-    restartBtn.addEventListener("click", () => {
-      if (!submitted || submissionInProgress || !playerReady) return;
-
-      attemptNumber++;
-
-      submitted = false;
-      submissionInProgress = false;
-      assessmentStarted = false;
-      currentQuestion = -1;
-      answers = Array(QUESTIONS.length).fill(-1);
-      shown = Array(QUESTIONS.length).fill(false);
-      currentOptionMap = [];
-
-      if (correctionTimer !== null) {
-        clearTimeout(correctionTimer);
-        correctionTimer = null;
-      }
-
-      correctingSeek = false;
-
-      const givenNameInput = document.getElementById("givenName");
-      const lastNameInput = document.getElementById("lastName");
-      const classInput = document.getElementById("studentClass");
-
-      givenNameInput.value = "";
-      lastNameInput.value = "";
-
-      givenNameInput.disabled = false;
-      lastNameInput.disabled = false;
-      classInput.disabled = false;
-
-      questionPanel.style.display = "none";
-      submitPanel.style.display = "none";
-      submitBtn.hidden = true;
-      submitBtn.disabled = false;
-      restartBtn.style.display = "none";
-      statusBox.textContent = "";
-
-      updateProgress();
-
-      try {
-        player.pause();
-        player.currentTime = 0;
-        player.playbackRate = 1;
-      } catch (e) {}
-
-      playbackRate = 1;
-      playbackSpeedSelect.value = "1";
-      playbackSpeedSelect.disabled = false;
-
-      playPauseBtn.disabled = false;
-      playPauseBtn.textContent = "Play video";
-
-      resetPlaybackAnchor(0);
-
-      playbackStatus.textContent =
-        "Attempt " + attemptNumber +
-        ": enter your name and press Play video to begin.";
-
-      if (monitorInterval !== null) {
-        clearInterval(monitorInterval);
-      }
-
-      monitorInterval = setInterval(monitorPlayback, 100);
-
-      document.querySelector(".panel").scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-      givenNameInput.focus();
-    });
-
-    // =========================================================
-    // PLAY / PAUSE CONTROL
-    // =========================================================
-
-    playPauseBtn.addEventListener("click", () => {
-      if (!playerReady || submitted || submissionInProgress ||
-          currentQuestion !== -1) {
-        return;
-      }
-
-      if (!assessmentStarted && !validateStudentDetails()) {
-        return;
-      }
-
-      if (!player.paused && !player.ended) {
-        player.pause();
-      } else {
-        assessmentStarted = true;
-        resetPlaybackAnchor(player.currentTime);
-
-        player.play().catch(() => {
-          playbackStatus.textContent =
-            "Playback could not start. Check video access and try again.";
-        });
-      }
-    });
-
-    // =========================================================
-    // PLAYBACK SPEED
-    // =========================================================
-
-    playbackSpeedSelect.addEventListener("change", () => {
-      if (!playerReady || submitted || submissionInProgress) {
-        return;
-      }
-
-      const selectedSpeed = Number(playbackSpeedSelect.value);
-
-      if ([0.75, 1, 1.25, 1.5].includes(selectedSpeed) &&
-          selectedSpeed <= MAX_PLAYBACK_RATE) {
-        player.playbackRate = selectedSpeed;
-      } else {
-        player.playbackRate = 1;
-        playbackSpeedSelect.value = "1";
-      }
-    });
-
-    player.addEventListener("ratechange", () => {
-      if (!playerReady) return;
-
-      let changedRate = Number(player.playbackRate);
-
-      if (changedRate > MAX_PLAYBACK_RATE) {
-        player.playbackRate = 1.5;
-        changedRate = 1.5;
-      }
-
-      playbackRate = changedRate;
-
-      playbackSpeedSelect.value = String(playbackRate);
-      resetPlaybackAnchor(player.currentTime);
-    });
-
-    // =========================================================
-    // HTML5 VIDEO EVENTS — REPLACE YOUTUBE PLAYER API
-    // =========================================================
-
-    player.addEventListener("loadedmetadata", () => {
-      playerReady = true;
-      playbackRate = 1;
-      player.playbackRate = 1;
-
-      playPauseBtn.disabled = false;
-      playPauseBtn.textContent = "Play video";
-
-      playbackStatus.textContent =
-        "Video ready. Enter your details and press Play video.";
-
-      playbackSpeedSelect.value = "1";
-      playbackSpeedSelect.disabled = false;
-
-      resetPlaybackAnchor(player.currentTime);
-
-      if (monitorInterval !== null) {
-        clearInterval(monitorInterval);
-      }
-
-      monitorInterval = setInterval(monitorPlayback, 100);
-    });
-
-    player.addEventListener("play", () => {
-      if (!playerReady) return;
-
-      assessmentStarted = true;
-      resetPlaybackAnchor(player.currentTime);
-
-      if (currentQuestion === -1 && !submitted &&
-          !submissionInProgress) {
-        playPauseBtn.textContent = "Pause video";
-        playPauseBtn.disabled = false;
-        playbackStatus.textContent = "Video playing.";
-      }
-    });
-
-    player.addEventListener("pause", () => {
-      if (currentQuestion === -1 && !submitted &&
-          !submissionInProgress) {
-        playPauseBtn.textContent = "Play video";
-        playPauseBtn.disabled = false;
-        playbackStatus.textContent =
-          "Video paused. Press Play video to resume.";
-      }
-    });
-
-    player.addEventListener("ended", () => {
-      playPauseBtn.textContent = "Video ended";
-      playPauseBtn.disabled = true;
-
-      if (answers.every(a => a !== -1)) {
-        submitAnswers();
-      } else {
-        playbackStatus.textContent =
-          "The video ended before all questions were answered.";
-
-        statusBox.textContent =
-          "Some questions remain unanswered. Answer them before submission.";
-      }
-    });
-
-    player.addEventListener("error", () => {
-      playerReady = false;
-      playPauseBtn.disabled = true;
-      playPauseBtn.textContent = "Video unavailable";
-
-      playbackStatus.textContent =
-        "The video could not be loaded. Check that the Google Drive file " +
-        "is publicly accessible and that the URL supports video playback.";
-
-      statusBox.textContent =
-        "If the video link is correct, test whether Google Drive allows " +
-        "the file to play directly in your browser.";
-    });
-
-    // =========================================================
-    // LOAD GOOGLE DRIVE VIDEO
-    // =========================================================
-
-    function addSubtitles() {
-      // Must be set before player.src; raw.githubusercontent.com sends CORS headers.
-      player.crossOrigin = "anonymous";
-
-      const track = document.createElement("track");
-      track.kind = "subtitles";
-      track.label = "English";   // change if the subtitles are in another language
-      track.srclang = "en";      // e.g. "es" for Spanish
-      track.src = SUBTITLE_URL;
-      track.default = true;
-
-      track.addEventListener("error", () => {
-        console.error("Subtitle file could not be loaded:", SUBTITLE_URL);
-      });
-
-      player.appendChild(track);
-      track.track.mode = "showing";
-    }
-
-    if (VIDEO_URL && !VIDEO_URL.includes("YOUR_FILE_ID")) {
-      addSubtitles();          // 1. crossOrigin + subtitle track
-      player.src = VIDEO_URL;  // 2. then the video source
-      player.load();
-    } else {
-      playPauseBtn.disabled = true;
-      playPauseBtn.textContent = "Set video link";
-      playbackStatus.textContent = "Set VIDEO_URL to your video file.";
-    }
-
-    updateProgress();
-  </script>
+<h1>Copyright and Digital Citizenship</h1>
+<p class="muted">Interactive Video Assessment</p>
+
+<section class="panel">
+<h2>About you</h2>
+<div class="field">
+<label for="givenName">Given name</label>
+<input id="givenName" type="text" maxlength="80" autocomplete="given-name" placeholder="Enter your given name" required>
+</div>
+<div class="field">
+<label for="lastName">Last name</label>
+<input id="lastName" type="text" maxlength="80" autocomplete="family-name" placeholder="Enter your last name" required>
+</div>
+<div class="field">
+<label for="studentClass">Class</label>
+<select id="studentClass" required style="width:100%;max-width:340px">
+<option value="">Select your class</option>
+<option>3A</option><option>3B</option><option>3C</option>
+<option>4A</option><option>4B</option><option>4C</option>
+</select>
+</div>
+</section>
+
+<section class="panel" id="videoPanel">
+<h2>Watch the video</h2>
+<p class="muted">Watch carefully. The video pauses automatically when it is time to answer a question. Select an answer to save it and continue. You can return to previous questions, but you cannot skip ahead.</p>
+<div class="video-wrap">
+<video id="player" playsinline preload="auto">
+<track id="subtitleTrack" kind="subtitles" label="English" srclang="en" default>
+Your browser does not support HTML5 video.
+</video>
+<div id="playerShield" aria-hidden="true"></div>
+</div>
+<div class="video-controls">
+<button id="playPauseBtn" type="button" disabled>Loading video…</button>
+<label for="playbackSpeed">Playback speed</label>
+<select id="playbackSpeed" disabled>
+<option value=".75">0.75×</option><option value="1" selected>1× (Normal)</option>
+<option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+</select>
+<p id="playbackStatus" class="muted" aria-live="polite">Loading video player…</p>
+</div>
+<h3 id="progressText">Questions answered: 0 / 20</h3>
+<div class="progress-track"><div id="progressBar"></div></div>
+</section>
+
+<section id="questionPanel" class="panel" aria-live="polite">
+<div id="questionNumber"></div><h2 id="questionText"></h2>
+<p id="questionTimestamp" class="muted"></p><div id="answerOptions"></div>
+<p class="muted">Select an answer to save it and continue the video. Use Previous Question to revisit an earlier question.</p>
+<button id="previousBtn" type="button" class="secondary-button">Previous question</button>
+<button id="continueBtn" type="button" disabled>Save answer and continue video</button>
+</section>
+
+<section id="submitPanel" class="panel">
+<h2 id="submitHeading">Submitting your quiz</h2>
+<p id="submitMessage" aria-live="polite">Your answers are being submitted automatically.</p>
+<button id="submitBtn" type="button" hidden>Retry submission</button>
+<button id="restartBtn" type="button">Restart quiz</button>
+</section>
+<section class="panel"><div id="status" role="status" aria-live="polite"></div></section>
+
+<script>
+"use strict";
+
+/* =========================================================
+   MEDIA URLS — USE RAW FILE URLS, NOT GITHUB /BLOB/ PAGES
+   ========================================================= */
+const VIDEO_URL =
+ "https://raw.githubusercontent.com/FinColombia/copyr/100a05e828bd8bf50ac731b3d4890ecd8455871c/copyright-video.mp4";
+const SUBTITLE_URL =
+ "https://raw.githubusercontent.com/FinColombia/copyr/100a05e828bd8bf50ac731b3d4890ecd8455871c/copyright-video-subtitle.vtt";
+
+const APPS_SCRIPT_URL =
+ "https://script.google.com/a/macros/glm.edu.co/s/AKfycbyvBy67ElrrK673NQ9AkjJszfasIYAB1e4egNmvxCQjei_LcoQ3hTVTHmIM6Wcmbzn9Og/exec";
+
+const QUESTIONS = [
+{t:85,q:"Why might media be available online for free?",a:["All online media belongs to the public.","The creator allows free access, the work is in the public domain, or someone shared it illegally.","Artists never earn money from their work.","Free media never has copyright protection."],c:1},
+{t:56,q:"What does it mean when an artist chooses to share work for free?",a:["Anyone can claim the work as their own.","The work automatically becomes public domain.","The artist has decided to allow people to access it for free.","The artist loses all rights to the work."],c:2},
+{t:51,q:"How might an artist benefit from sharing work for free?",a:["The artist may earn advertising revenue or build recognition.","The artist automatically loses copyright.","The artist must stop creating new work.","The artist gives ownership to every viewer."],c:0},
+{t:78,q:"What does public domain mean?",a:["A website where everyone uploads videos.","A place online that always requires payment.","A collection of illegally shared movies.","Work that is not protected by copyright."],c:3},
+{t:125,q:"Why might an older creative work enter the public domain?",a:["Every old work is automatically free immediately.","Its copyright protection may have expired.","Someone copied it without permission.","The internet removes copyright."],c:1},
+{t:112,q:"What is copyright designed to encourage?",a:["People to copy every song they enjoy.","Websites to offer all media for free.","Artists and creators to continue making original work.","Students to avoid creating digital projects."],c:2},
+{t:127,q:"Why is sharing someone's copyrighted work without permission a fairness issue?",a:["Every creator must charge money.","Only famous artists deserve protection.","Digital work cannot belong to anyone.","Creators deserve respect for their work and rights."],c:3},
+{t:138,q:"Which action best demonstrates responsible digital citizenship?",a:["Respecting creators' rights and avoiding unauthorized sharing.","Downloading any movie that is free.","Copying music because it is only for friends.","Ignoring copyright because a file is online."],c:0},
+{t:151,q:"Which situation is copyright infringement?",a:["Watching a film through an authorized service.","Reading a book in the public domain.","Sharing copyrighted media through a file-sharing site without permission.","Creating your own original song."],c:2},
+{t:163,q:"Why could copying songs from a library CD to a phone be a problem?",a:["Phones cannot store music.","Copying copyrighted music without permission can infringe copyright.","Libraries never lend music.","Music can only be played on CDs."],c:1},
+{t:179,q:"What is a concern about websites streaming movies or songs without permission?",a:["All streaming is illegal.","All online music is public domain.","Streaming always damages a device.","The site may be distributing copyrighted work illegally."],c:3},
+{t:200,q:"A movie has just been released in theaters but is offered free on an unknown website. What should you think?",a:["It must be public domain.","All new movies are free to copy.","It may have been shared without the creator's permission.","The website automatically owns the movie."],c:2},
+{t:205,q:"Leo stores his own school documents in Google Drive. Is this the kind of use criticized in the video?",a:["Yes, all online storage is illegal.","Yes, because school documents cannot be stored online.","No, because online storage cannot hold media.","No, the concern is sharing copyrighted media without permission."],c:3},
+{t:219,q:"What is the best way to use a file-storage service responsibly?",a:["Use it to share any movie with friends.","Store your files and share copyrighted work only when authorized.","Upload copies of every song you own.","Assume storage services make every file legal."],c:1},
+{t:237,q:"A student records a song from a streaming service and shares it without permission. What applies?",a:["Recording makes a song public domain.","Sharing is always allowed among friends.","Recording and sharing copyrighted music without permission can be infringement.","Copyright only applies to movies."],c:2},
+{t:248,q:"What is one benefit of getting media from trustworthy, authorized sources?",a:["You respect creators and obtain content legally.","You can copy every file you find.","All content becomes free.","You no longer need to follow rules."],c:0},
+{t:263,q:"What is another possible consequence of copyright infringement?",a:["Automatic permission to use the work.","Penalties or money that may have to be paid.","Ownership of the original work.","Free access to every streaming service."],c:1},
+{t:274,q:"What is malware?",a:["A tool for creating original music.","A type of copyright license.","A website that sells legal movies.","Harmful software that can damage devices or access personal information."],c:3},
+{t:281,q:"What is one danger of malware on an illegal file-sharing site?",a:["It always improves device security.","It makes every download legal.","It may damage your device or seek your personal information.","It automatically protects artists' work."],c:2},
+{t:298,q:"Where can we find media legally?",a:["Download any free file you find.","We can find free images on image banks","Share copyrighted files with friends.","Assume every website respects artists' rights."],c:1}
+];
+
+/* Keep the original question-to-video timestamps. */
+const QUESTION_TIMESTAMPS = [
+99,63,59,74,78,121,128,141,159,174,
+184,198,225,229,243,259,271,284,289,298
+];
+QUESTIONS.forEach((q,i)=>q.t=QUESTION_TIMESTAMPS[i]);
+
+const $ = id => document.getElementById(id);
+const player=$("player"), questionPanel=$("questionPanel");
+const questionText=$("questionText"), questionNumber=$("questionNumber");
+const questionTimestamp=$("questionTimestamp"), answerOptions=$("answerOptions");
+const continueBtn=$("continueBtn"), previousBtn=$("previousBtn");
+const submitPanel=$("submitPanel"), submitBtn=$("submitBtn");
+const restartBtn=$("restartBtn"), submitHeading=$("submitHeading");
+const submitMessage=$("submitMessage"), statusBox=$("status");
+const playbackStatus=$("playbackStatus"), playPauseBtn=$("playPauseBtn");
+const playbackSpeedSelect=$("playbackSpeed"), videoPanel=$("videoPanel");
+
+let playerReady=false,currentQuestion=-1;
+let answers=Array(QUESTIONS.length).fill(-1);
+let submitted=false,submissionInProgress=false,assessmentStarted=false;
+let attemptNumber=1,currentOptionMap=[],lastAllowedTime=0;
+let lastMonitorTime=0,lastMonitorWallTime=0,playbackRate=1;
+let correctingSeek=false,correctionTimer=null,monitorInterval=null;
+
+const PASS_THRESHOLD=80,MAX_PLAYBACK_RATE=1.5;
+const chronologicalQuestionIndexes=QUESTIONS.map((q,i)=>i)
+ .sort((a,b)=>QUESTIONS[a].t-QUESTIONS[b].t||a-b);
+
+function formatTime(seconds){
+ seconds=Math.max(0,Math.floor(Number(seconds)||0));
+ return String(Math.floor(seconds/60)).padStart(2,"0")+":"+
+        String(seconds%60).padStart(2,"0");
+}
+function shuffleArray(a){
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+function updateProgress(){
+ const count=answers.filter(a=>a!==-1).length;
+ $("progressText").textContent=`Questions answered: ${count} / ${QUESTIONS.length}`;
+ $("progressBar").style.width=(count/QUESTIONS.length*100)+"%";
+}
+function validateStudentDetails(){
+ const given=$("givenName").value.trim();
+ const last=$("lastName").value.trim();
+ const cls=$("studentClass").value;
+ if(!given||!last||!["3A","3B","3C","4A","4B","4C"].includes(cls)){
+  playbackStatus.textContent="Enter your given name, last name, and class before starting.";
+  (!given? $("givenName"):!last? $("lastName"):$("studentClass")).focus();
+  return false;
+ }
+ return true;
+}
+function nextDueQuestionIndex(seconds){
+ for(const i of chronologicalQuestionIndexes)
+  if(answers[i]===-1&&QUESTIONS[i].t<=seconds)return i;
+ return -1;
+}
+function resetPlaybackAnchor(time){
+ lastAllowedTime=lastMonitorTime=Number(time)||0;
+ lastMonitorWallTime=Date.now();
+}
+function scrollToVideo(){
+ videoPanel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function scrollToQuestion(){
+ questionPanel.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+/* Controlled backward seeking */
+function seekToQuestion(index){
+ if(!playerReady)return;
+ clearTimeout(correctionTimer);
+ correctingSeek=true;
+ player.pause();
+ try{player.currentTime=QUESTIONS[index].t;}
+ catch(e){correctingSeek=false;return;}
+ resetPlaybackAnchor(QUESTIONS[index].t);
+ correctionTimer=setTimeout(()=>{
+  resetPlaybackAnchor(player.currentTime);
+  correctingSeek=false;
+  correctionTimer=null;
+ },600);
+}
+
+/* Display a question and randomize its answer order */
+function showQuestion(index){
+ currentQuestion=index;
+ const q=QUESTIONS[index];
+ const pos=chronologicalQuestionIndexes.indexOf(index);
+ questionNumber.textContent=`QUESTION ${pos+1} OF ${QUESTIONS.length}`;
+ questionText.textContent=q.q;
+ questionTimestamp.textContent="Video timestamp: "+formatTime(q.t);
+ answerOptions.replaceChildren();
+
+ currentOptionMap=shuffleArray(q.a.map((text,originalIndex)=>({text,originalIndex})));
+ currentOptionMap.forEach((option,displayIndex)=>{
+  const label=document.createElement("label");
+  label.className="answer";
+  const radio=document.createElement("input");
+  radio.type="radio";
+  radio.name="currentAnswer";
+  radio.value=String(displayIndex);
+  radio.checked=answers[index]===option.originalIndex;
+  radio.addEventListener("change",()=>{
+   continueBtn.disabled=false;
+   saveCurrentAnswerAndContinue();
+  });
+  label.append(radio,document.createTextNode(
+   String.fromCharCode(65+displayIndex)+". "+option.text
+  ));
+  answerOptions.appendChild(label);
+ });
+ previousBtn.disabled=pos<=0;
+ continueBtn.disabled=answers[index]===-1;
+ questionPanel.style.display="block";
+ playPauseBtn.disabled=true;
+ playPauseBtn.textContent="Paused for question";
+ playbackStatus.textContent="Video paused at "+formatTime(q.t)+". Select an answer to continue.";
+ scrollToQuestion();
+}
+
+function checkVideoTime(){
+ if(!playerReady||submitted||submissionInProgress||currentQuestion!==-1||correctingSeek)return;
+ const index=nextDueQuestionIndex(player.currentTime);
+ if(index!==-1){
+  player.pause();
+  resetPlaybackAnchor(player.currentTime);
+  showQuestion(index);
+ }
+}
+
+/* Best-effort seek/skip prevention. Browser-side restrictions cannot
+   prevent every possible manipulation of the page. */
+function monitorPlayback(){
+ if(!playerReady||submitted||submissionInProgress||correctingSeek)return;
+ const time=player.currentTime;
+ if(currentQuestion!==-1||player.paused||player.ended){
+  resetPlaybackAnchor(time);return;
+ }
+ const now=Date.now();
+ if(!lastMonitorWallTime){resetPlaybackAnchor(time);return;}
+ const elapsed=Math.max(0,(now-lastMonitorWallTime)/1000);
+ const change=time-lastMonitorTime;
+ if(change>elapsed*playbackRate+0.8||change< -0.8){
+  const restore=lastAllowedTime;
+  correctingSeek=true;
+  try{player.currentTime=restore;}catch(e){}
+  playbackStatus.textContent="Skipping and seeking are disabled. Use Previous question to revisit questions.";
+  clearTimeout(correctionTimer);
+  correctionTimer=setTimeout(()=>{
+   if(playerReady&&!submitted)resetPlaybackAnchor(player.currentTime);
+   correctingSeek=false;correctionTimer=null;
+  },500);
+  return;
+ }
+ lastAllowedTime=lastMonitorTime=time;
+ lastMonitorWallTime=now;
+ checkVideoTime();
+}
+player.addEventListener("seeking",()=>{
+ if(!playerReady||correctingSeek||submitted||submissionInProgress)return;
+ const restore=lastAllowedTime;
+ correctingSeek=true;
+ player.pause();
+ try{player.currentTime=restore;}catch(e){}
+ playbackStatus.textContent="Seeking is disabled. Use Previous question to revisit questions.";
+ clearTimeout(correctionTimer);
+ correctionTimer=setTimeout(()=>{
+  if(playerReady&&!submitted)resetPlaybackAnchor(player.currentTime);
+  correctingSeek=false;correctionTimer=null;
+ },500);
+});
+
+/* Save the selected answer automatically */
+function saveCurrentAnswerAndContinue(){
+ if(currentQuestion===-1||submitted||submissionInProgress)return;
+ const selected=answerOptions.querySelector('input[name="currentAnswer"]:checked');
+ if(!selected)return;
+ const option=currentOptionMap[Number(selected.value)];
+ if(!option)return;
+ answers[currentQuestion]=option.originalIndex;
+ currentQuestion=-1;
+ questionPanel.style.display="none";
+ continueBtn.disabled=true;
+ updateProgress();
+
+ if(answers.every(a=>a!==-1)){
+  submitPanel.style.display="block";
+  submitHeading.textContent="Submitting your quiz";
+  submitMessage.textContent="All questions answered. Your quiz is being submitted automatically.";
+  submitAnswers();return;
+ }
+ const next=nextDueQuestionIndex(player.currentTime);
+ if(next!==-1){
+  player.pause();resetPlaybackAnchor(player.currentTime);showQuestion(next);return;
+ }
+ playbackStatus.textContent="Video playing.";
+ playPauseBtn.disabled=false;
+ playPauseBtn.textContent="Pause video";
+ scrollToVideo();
+ resetPlaybackAnchor(player.currentTime);
+ player.play().catch(()=>{
+  playbackStatus.textContent="Press Play video to continue.";
+  playPauseBtn.textContent="Play video";
+ });
+}
+
+previousBtn.addEventListener("click",()=>{
+ if(currentQuestion===-1||submitted||submissionInProgress||!playerReady)return;
+ const pos=chronologicalQuestionIndexes.indexOf(currentQuestion);
+ if(pos<=0)return;
+ const index=chronologicalQuestionIndexes[pos-1];
+ seekToQuestion(index);
+ showQuestion(index);
+});
+continueBtn.addEventListener("click",saveCurrentAnswerAndContinue);
+
+/* Send results to the existing Apps Script endpoint */
+function submitAnswers(){
+ if(submitted||submissionInProgress)return;
+ if(!validateStudentDetails()){
+  statusBox.textContent="Complete your student details before submitting.";
+  submitBtn.hidden=false;return;
+ }
+ if(answers.some(a=>a===-1)){
+  statusBox.textContent="Some questions are still unanswered.";
+  submitBtn.hidden=true;return;
+ }
+
+ submissionInProgress=true;
+ submitPanel.style.display="block";
+ submitHeading.textContent="Submitting your quiz";
+ submitMessage.textContent="Submitting your answers…";
+ submitBtn.disabled=true;submitBtn.hidden=true;
+ restartBtn.style.display="none";statusBox.textContent="";
+ if(playerReady)player.pause();
+ playPauseBtn.disabled=true;continueBtn.disabled=true;
+ previousBtn.disabled=true;playbackSpeedSelect.disabled=true;
+
+ const last=$("lastName").value.trim();
+ const payload={
+  givenName:$("givenName").value.trim(),
+  lastName:attemptNumber===1?last:last+" — Attempt "+attemptNumber,
+  studentClass:$("studentClass").value,
+  answers:answers.slice()
+ };
+
+ (async()=>{
+  try{
+   await fetch(APPS_SCRIPT_URL,{
+    method:"POST",mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload)
+   });
+   submissionInProgress=false;
+   submitted=true;
+   const score=answers.reduce((sum,a,i)=>sum+(a===QUESTIONS[i].c?1:0),0);
+   const percentage=Math.round(score/QUESTIONS.length*100);
+
+   submitHeading.textContent="Submission sent";
+   submitMessage.textContent=
+    "Your answers were sent using the browser request. Because no-cors responses are opaque, this page cannot verify that Apps Script saved the result. If your teacher cannot find it, tell them before restarting.";
+   statusBox.textContent=`Your score: ${score} / ${QUESTIONS.length} (${percentage}%).`;
+   submitBtn.hidden=true;submitBtn.disabled=false;
+   playPauseBtn.disabled=true;playPauseBtn.textContent="Assessment complete";
+   playbackSpeedSelect.disabled=true;
+   $("givenName").disabled=true;$("lastName").disabled=true;$("studentClass").disabled=true;
+   questionPanel.style.display="none";
+   playbackStatus.textContent="Assessment complete. Thank you.";
+   restartBtn.style.display=percentage<PASS_THRESHOLD?"inline-block":"none";
+   if(percentage<PASS_THRESHOLD)
+    submitMessage.textContent="Your score is below 80%. Restart the quiz and try again.";
+   clearInterval(monitorInterval);monitorInterval=null;
+   clearTimeout(correctionTimer);correctionTimer=null;
+   submitPanel.scrollIntoView({behavior:"smooth",block:"center"});
+  }catch(error){handleSubmissionFailure(error);}
+ })();
+}
+function handleSubmissionFailure(error){
+ submissionInProgress=false;
+ submitHeading.textContent="Submission unsuccessful";
+ submitMessage.textContent="Your answers remain on this page. Please retry.";
+ statusBox.textContent=error?.message||"An unexpected error occurred during submission.";
+ submitBtn.textContent="Retry submission";submitBtn.hidden=false;submitBtn.disabled=false;
+ restartBtn.style.display="none";playPauseBtn.disabled=true;playbackSpeedSelect.disabled=true;
+}
+submitBtn.addEventListener("click",submitAnswers);
+
+/* Restart creates a new attempt */
+restartBtn.addEventListener("click",()=>{
+ if(!submitted||submissionInProgress||!playerReady)return;
+ attemptNumber++;submitted=false;submissionInProgress=false;assessmentStarted=false;
+ currentQuestion=-1;answers=Array(QUESTIONS.length).fill(-1);currentOptionMap=[];
+ clearTimeout(correctionTimer);correctingSeek=false;
+ $("givenName").value="";$("lastName").value="";
+ $("givenName").disabled=false;$("lastName").disabled=false;$("studentClass").disabled=false;
+ questionPanel.style.display="none";submitPanel.style.display="none";
+ submitBtn.hidden=true;submitBtn.disabled=false;restartBtn.style.display="none";statusBox.textContent="";
+ updateProgress();
+ try{player.pause();player.currentTime=0;player.playbackRate=1;}catch(e){}
+ playbackRate=1;playbackSpeedSelect.value="1";playbackSpeedSelect.disabled=false;
+ playPauseBtn.disabled=false;playPauseBtn.textContent="Play video";
+ resetPlaybackAnchor(0);
+ playbackStatus.textContent=`Attempt ${attemptNumber}: enter your name and press Play video to begin.`;
+ clearInterval(monitorInterval);monitorInterval=setInterval(monitorPlayback,100);
+ document.querySelector(".panel").scrollIntoView({behavior:"smooth",block:"start"});
+ $("givenName").focus();
+});
+
+/* Custom playback controls */
+playPauseBtn.addEventListener("click",()=>{
+ if(!playerReady||submitted||submissionInProgress||currentQuestion!==-1)return;
+ if(!assessmentStarted&&!validateStudentDetails())return;
+ if(!player.paused&&!player.ended)player.pause();
+ else{
+  assessmentStarted=true;resetPlaybackAnchor(player.currentTime);
+  player.play().catch(()=>{
+   playbackStatus.textContent="Playback could not start. Check video access and try again.";
+  });
+ }
+});
+playbackSpeedSelect.addEventListener("change",()=>{
+ if(!playerReady||submitted||submissionInProgress)return;
+ const speed=Number(playbackSpeedSelect.value);
+ if([.75,1,1.25,1.5].includes(speed)&&speed<=MAX_PLAYBACK_RATE)
+  player.playbackRate=speed;
+ else{player.playbackRate=1;playbackSpeedSelect.value="1";}
+});
+player.addEventListener("ratechange",()=>{
+ if(!playerReady)return;
+ let speed=Number(player.playbackRate);
+ if(speed>MAX_PLAYBACK_RATE){player.playbackRate=1.5;speed=1.5;}
+ playbackRate=speed;playbackSpeedSelect.value=String(speed);
+ resetPlaybackAnchor(player.currentTime);
+});
+
+/* Media events */
+player.addEventListener("loadedmetadata",()=>{
+ playerReady=true;playbackRate=1;player.playbackRate=1;
+ playPauseBtn.disabled=false;playPauseBtn.textContent="Play video";
+ playbackStatus.textContent="Video ready. Enter your details and press Play video.";
+ playbackSpeedSelect.value="1";playbackSpeedSelect.disabled=false;
+ resetPlaybackAnchor(player.currentTime);
+ clearInterval(monitorInterval);monitorInterval=setInterval(monitorPlayback,100);
+});
+player.addEventListener("play",()=>{
+ if(!playerReady)return;
+ assessmentStarted=true;resetPlaybackAnchor(player.currentTime);
+ if(currentQuestion===-1&&!submitted&&!submissionInProgress){
+  playPauseBtn.textContent="Pause video";playPauseBtn.disabled=false;
+  playbackStatus.textContent="Video playing.";
+ }
+});
+player.addEventListener("pause",()=>{
+ if(currentQuestion===-1&&!submitted&&!submissionInProgress){
+  playPauseBtn.textContent="Play video";playPauseBtn.disabled=false;
+  playbackStatus.textContent="Video paused. Press Play video to resume.";
+ }
+});
+player.addEventListener("ended",()=>{
+ playPauseBtn.textContent="Video ended";playPauseBtn.disabled=true;
+ if(answers.every(a=>a!==-1))submitAnswers();
+ else{
+  playbackStatus.textContent="The video ended before all questions were answered.";
+  statusBox.textContent="Some questions remain unanswered. Answer them before submission.";
+ }
+});
+player.addEventListener("error",()=>{
+ playerReady=false;playPauseBtn.disabled=true;playPauseBtn.textContent="Video unavailable";
+ const err=player.error;
+ const codes={1:"Playback was aborted.",2:"Network error while loading the media.",3:"The video could not be decoded. Check its format and codecs.",4:"The media URL is unavailable or its format is unsupported."};
+ playbackStatus.textContent=(codes[err?.code]||"The video could not be loaded.")+
+ " Check the raw GitHub URL, repository access, and MP4 encoding.";
+ statusBox.textContent="Test the video URL directly in a new browser tab. It must return the video file, not a GitHub HTML page.";
+});
+
+/* Load subtitles before loading the video.
+   The raw GitHub host must be accessible and the VTT file valid. */
+function loadMedia(){
+ const track=$("subtitleTrack");
+ player.crossOrigin="anonymous";
+ track.src=SUBTITLE_URL;
+ track.default=true;
+ track.addEventListener("load",()=>{
+  try{track.track.mode="showing";}catch(e){}
+ });
+ track.addEventListener("error",()=>{
+  playbackStatus.textContent="Video loading. Subtitles could not be loaded; check the raw VTT URL and WebVTT format.";
+  console.error("Subtitle loading failed:",SUBTITLE_URL);
+ });
+ player.src=VIDEO_URL;
+ player.load();
+}
+player.addEventListener("canplay",()=>{
+ if(!playerReady)playbackStatus.textContent="Video loaded. Preparing player…";
+});
+player.addEventListener("loadeddata",()=>{
+ if(!playerReady)playbackStatus.textContent="Video data loaded. Preparing player…";
+});
+
+loadMedia();
+updateProgress();
+</script>
 </body>
 </html>
