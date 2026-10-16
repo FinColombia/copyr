@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Copyright and Digital Citizenship</title>
+<link rel="preconnect" href="https://raw.githubusercontent.com">
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <style>
 :root{font-family:Arial,sans-serif;color:#202124;background:#f5f7fb}
 body{max-width:1000px;margin:auto;padding:20px;line-height:1.5}
@@ -61,9 +63,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <h2>Watch the video</h2>
 <p class="muted">Watch carefully. The video pauses automatically when it is time to answer a question. Select an answer to save it and continue. You can return to previous questions, but you cannot skip ahead.</p>
 <div class="video-wrap">
-<!-- NOTE: no crossorigin attribute here. Subtitles are loaded as a same-origin
-     blob (see loadSubtitles), so the video does not need CORS. -->
-<video id="player" playsinline preload="auto">
+<!-- preload="metadata": only the file header is fetched until Play is pressed.
+     No crossorigin attribute: subtitles are a same-origin blob (see loadSubtitles),
+     so the video is streamed with plain range requests and needs no CORS. -->
+<video id="player" playsinline preload="metadata">
 <track id="subtitleTrack" kind="subtitles" label="English" srclang="en" default>
 Your browser does not support HTML5 video.
 </video>
@@ -102,17 +105,17 @@ Your browser does not support HTML5 video.
 "use strict";
 
 /* =========================================================
-   MEDIA URLS
-   Use raw.githubusercontent.com DIRECTLY.
-   The github.com/.../raw/... address answers with a 302 redirect
-   that has no valid CORS headers, which breaks loading in many
-   browsers. raw.githubusercontent.com sends
-   "Access-Control-Allow-Origin: *" and supports range requests.
+   MEDIA URLS  (same GitHub repo and file names as before)
+   Use raw.githubusercontent.com DIRECTLY: it skips the github.com
+   302 redirect (one fewer round trip), supports HTTP range requests
+   (playback and seeking without downloading the whole file) and sends
+   "Access-Control-Allow-Origin: *", which the subtitle fetch needs.
+   Keep the MP4 "faststart" (moov atom at the start of the file).
    ========================================================= */
 const VIDEO_URL =
- "https://github.com/FinColombia/copyr/raw/refs/heads/main/copyright-video.mp4";
+ "https://raw.githubusercontent.com/FinColombia/copyr/main/copyright-video.mp4";
 const SUBTITLE_URL =
- "https://github.com/FinColombia/copyr/raw/refs/heads/main/copyright-video-subtitle.vtt;
+ "https://raw.githubusercontent.com/FinColombia/copyr/main/copyright-video-subtitle.vtt";
 
 const APPS_SCRIPT_URL =
  "https://script.google.com/a/macros/glm.edu.co/s/AKfycbyvBy67ElrrK673NQ9AkjJszfasIYAB1e4egNmvxCQjei_LcoQ3hTVTHmIM6Wcmbzn9Og/exec";
@@ -164,7 +167,7 @@ let submitted=false,submissionInProgress=false,assessmentStarted=false;
 let attemptNumber=1,currentOptionMap=[],lastAllowedTime=0;
 let lastMonitorTime=0,lastMonitorWallTime=0,playbackRate=1;
 let correctingSeek=false,correctionTimer=null,monitorInterval=null;
-let videoFallbackTried=false;
+let videoFailed=false;
 
 const PASS_THRESHOLD=80,MAX_PLAYBACK_RATE=1.5;
 const chronologicalQuestionIndexes=QUESTIONS.map((q,i)=>i)
@@ -457,6 +460,7 @@ restartBtn.addEventListener("click",()=>{
 
 /* Custom playback controls */
 playPauseBtn.addEventListener("click",()=>{
+ if(videoFailed){retryVideo();return;}
  if(!playerReady||submitted||submissionInProgress||currentQuestion!==-1)return;
  if(!assessmentStarted&&!validateStudentDetails())return;
  if(!player.paused&&!player.ended)player.pause();
@@ -491,9 +495,20 @@ function showSubtitles(){
  }catch(e){}
 }
 
+/* Warm-up: once the student starts typing, allow the browser to buffer
+   (best-effort hint; the initial page load stays metadata-only). */
+["givenName","lastName","studentClass"].forEach(id=>{
+ $(id).addEventListener("input",()=>{
+  if(player.preload!=="auto")player.preload="auto";
+ },{once:true});
+ $(id).addEventListener("change",()=>{
+  if(player.preload!=="auto")player.preload="auto";
+ },{once:true});
+});
+
 /* Media events */
 player.addEventListener("loadedmetadata",()=>{
- playerReady=true;playbackRate=1;player.playbackRate=1;
+ playerReady=true;videoFailed=false;playbackRate=1;player.playbackRate=1;
  playPauseBtn.disabled=false;playPauseBtn.textContent="Play video";
  playbackStatus.textContent="Video ready. Enter your details and press Play video.";
  playbackSpeedSelect.value="1";playbackSpeedSelect.disabled=false;
@@ -525,26 +540,22 @@ player.addEventListener("ended",()=>{
  }
 });
 player.addEventListener("error",()=>{
- playerReady=false;playPauseBtn.disabled=true;
-
- /* First failure: retry by downloading the file and playing it from memory
-    with the correct video/mp4 type (works around wrong MIME types,
-    blocked streaming, or strict browsers/Google Sites embeds). */
- if(!videoFallbackTried){
-  videoFallbackTried=true;
-  playPauseBtn.textContent="Loading video…";
-  playbackStatus.textContent="Retrying video download… (about 16 MB)";
-  loadVideoAsBlob();
-  return;
- }
-
- playPauseBtn.textContent="Video unavailable";
+ playerReady=false;videoFailed=true;
  const err=player.error;
- const codes={1:"Playback was aborted.",2:"Network error while loading the media.",3:"The video could not be decoded. Check its format and codecs.",4:"The media URL is unavailable or its format is unsupported."};
+ const codes={1:"Playback was aborted.",2:"Network error while loading the video.",3:"The video could not be decoded. Check its format and codecs.",4:"The video URL is unavailable or its format is unsupported."};
  playbackStatus.textContent=(codes[err?.code]||"The video could not be loaded.")+
- " Check your internet connection and reload the page.";
- statusBox.textContent="If the problem continues, tell your teacher.";
+  " Press Retry video. If it keeps failing, tell your teacher.";
+ playPauseBtn.disabled=false;playPauseBtn.textContent="Retry video";
 });
+
+/* Retry = ask the server for the same URL again (streams, never buffers the whole file). */
+function retryVideo(){
+ videoFailed=false;
+ playPauseBtn.disabled=true;playPauseBtn.textContent="Loading video…";
+ playbackStatus.textContent="Retrying video…";
+ player.src=VIDEO_URL;
+ player.load();
+}
 
 /* ---------- Subtitles ----------
    raw.githubusercontent.com serves .vtt files as text/plain with
@@ -568,28 +579,10 @@ async function loadSubtitles(){
  }
 }
 
-/* ---------- Video ---------- */
-async function loadVideoAsBlob(){
- try{
-  const response=await fetch(VIDEO_URL,{mode:"cors"});
-  if(!response.ok)throw new Error("HTTP "+response.status);
-  const data=await response.arrayBuffer();
-  const blobUrl=URL.createObjectURL(new Blob([data],{type:"video/mp4"}));
-  player.src=blobUrl;
-  player.load();
- }catch(error){
-  console.error("Video fallback failed:",error);
-  playerReady=false;
-  playPauseBtn.disabled=true;playPauseBtn.textContent="Video unavailable";
-  playbackStatus.textContent="The video could not be downloaded. Check your internet connection and reload the page.";
-  statusBox.textContent="If the problem continues, tell your teacher.";
- }
-}
-
 function loadMedia(){
- loadSubtitles();
- player.src=VIDEO_URL;   /* direct streaming first */
+ player.src=VIDEO_URL;   /* stream directly; request goes out first */
  player.load();
+ loadSubtitles();        /* ~7 KB, runs in parallel, does not delay the video */
 }
 player.addEventListener("canplay",()=>{
  if(!playerReady)playbackStatus.textContent="Video loaded. Preparing player…";
