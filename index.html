@@ -498,8 +498,12 @@ function handleSubmissionFailure(error){
  submissionInProgress=false;
  submitHeading.textContent="Submission unsuccessful";
  submitMessage.textContent="Your answers remain on this page. Please retry.";
- statusBox.textContent=error?.message||"An unexpected error occurred during submission.";
- submitBtn.textContent="Retry submission";submitBtn.hidden=false;submitBtn.disabled=false;
+const raw=error?.message||"";
+const isNetwork=error instanceof TypeError||/failed to fetch|networkerror|load failed/i.test(raw);
+statusBox.textContent=isNetwork
+ ?"Could not reach the results server. Check your internet connection and press Retry. If it keeps failing, tell your teacher."
+ :(raw||"An unexpected error occurred during submission.");
+     submitBtn.textContent="Retry submission";submitBtn.hidden=false;submitBtn.disabled=false;
  restartBtn.style.display="none";playPauseBtn.disabled=true;playbackSpeedSelect.disabled=true;
 }
 submitBtn.addEventListener("click",submitAnswers);
