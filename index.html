@@ -161,13 +161,22 @@ const submitMessage=$("submitMessage"), statusBox=$("status");
 const playbackStatus=$("playbackStatus"), playPauseBtn=$("playPauseBtn");
 const playbackSpeedSelect=$("playbackSpeed"), videoPanel=$("videoPanel");
 
-let playerReady=false,currentQuestion=-1;
-let answers=Array(QUESTIONS.length).fill(-1);
-let submitted=false,submissionInProgress=false,assessmentStarted=false;
-let attemptNumber=1,currentOptionMap=[],lastAllowedTime=0;
-let lastMonitorTime=0,lastMonitorWallTime=0,playbackRate=1;
-let correctingSeek=false,correctionTimer=null,monitorInterval=null;
-let videoFailed=false;
+
+let playerReady = false, currentQuestion = -1;
+let answers = Array(QUESTIONS.length).fill(-1);
+let submitted = false, submissionInProgress = false;
+let assessmentStarted = false;
+let attemptNumber = 1;
+let currentOptionMap = [], lastAllowedTime = 0;
+
+// Keep each question's shuffled order stable during the attempt.
+let optionOrders = Array(QUESTIONS.length).fill(null);
+
+let lastMonitorTime = 0, lastMonitorWallTime = 0;
+let playbackRate = 1;
+let correctingSeek = false, correctionTimer = null;
+let monitorInterval = null;
+let videoFailed = false;
 
 const PASS_THRESHOLD=80,MAX_PLAYBACK_RATE=1.5;
 const chronologicalQuestionIndexes=QUESTIONS.map((q,i)=>i)
@@ -241,9 +250,19 @@ function showQuestion(index){
  questionNumber.textContent=`QUESTION ${pos+1} OF ${QUESTIONS.length}`;
  questionText.textContent=q.q;
  questionTimestamp.textContent="Video timestamp: "+formatTime(q.t);
- answerOptions.replaceChildren();
+ answerOptions.replaceChildren();     
+     
+if (!optionOrders[index]) {
+  optionOrders[index] = shuffleArray(
+    q.a.map((text, originalIndex) => ({
+      text,
+      originalIndex
+    }))
+  );
+}
 
- currentOptionMap=shuffleArray(q.a.map((text,originalIndex)=>({text,originalIndex})));
+currentOptionMap = optionOrders[index];
+
  currentOptionMap.forEach((option,displayIndex)=>{
   const label=document.createElement("label");
   label.className="answer";
@@ -355,15 +374,49 @@ function saveCurrentAnswerAndContinue(){
   playPauseBtn.textContent="Play video";
  });
 }
+     
+previousBtn.addEventListener("click", () => {
+  if (
+    currentQuestion === -1 ||
+    submitted ||
+    submissionInProgress ||
+    !playerReady
+  ) {
+    return;
+  }
 
-previousBtn.addEventListener("click",()=>{
- if(currentQuestion===-1||submitted||submissionInProgress||!playerReady)return;
- const pos=chronologicalQuestionIndexes.indexOf(currentQuestion);
- if(pos<=0)return;
- const index=chronologicalQuestionIndexes[pos-1];
- seekToQuestion(index);
- showQuestion(index);
+  const pos = chronologicalQuestionIndexes.indexOf(
+    currentQuestion
+  );
+
+  if (pos <= 0) return;
+
+  const previousIndex = chronologicalQuestionIndexes[pos - 1];
+  const targetTime = QUESTIONS[previousIndex].t;
+
+  clearTimeout(correctionTimer);
+  correctingSeek = true;
+  player.pause();
+
+  // Permit this controlled backward seek only.
+  try {
+    player.currentTime = targetTime;
+  } catch (error) {
+    correctingSeek = false;
+    return;
+  }
+
+  resetPlaybackAnchor(targetTime);
+  showQuestion(previousIndex);
+
+  correctionTimer = setTimeout(() => {
+    resetPlaybackAnchor(player.currentTime);
+    correctingSeek = false;
+    correctionTimer = null;
+  }, 600);
 });
+
+     
 continueBtn.addEventListener("click",saveCurrentAnswerAndContinue);
 
 /* Send results to the existing Apps Script endpoint */
@@ -398,27 +451,41 @@ function submitAnswers(){
 
  (async()=>{
   try{
-   await fetch(APPS_SCRIPT_URL,{
-    method:"POST",mode:"no-cors",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(payload)
-   });
+     const response = await fetch(APPS_SCRIPT_URL, {
+       method: "POST",
+       redirect: "follow",
+       headers: {
+         "Content-Type": "text/plain;charset=utf-8"
+       },
+       body: JSON.stringify(payload)
+     });
+     
+     if (!response.ok) {
+       throw new Error("Server returned HTTP " + response.status);
+     }
+     
+     const result = await response.json();
+     if (result.status !== "success") {
+       throw new Error(result.message || "Results were not recorded.");
+     }
+       
+   
    submissionInProgress=false;
    submitted=true;
    const score=answers.reduce((sum,a,i)=>sum+(a===QUESTIONS[i].c?1:0),0);
    const percentage=Math.round(score/QUESTIONS.length*100);
 
-   submitHeading.textContent="Submission sent";
-   submitMessage.textContent=
-    "Your answers were sent using the browser request. Because no-cors responses are opaque, this page cannot verify that Apps Script saved the result. If your teacher cannot find it, tell them before restarting.";
-   statusBox.textContent=`Your score: ${score} / ${QUESTIONS.length} (${percentage}%).`;
-   submitBtn.hidden=true;submitBtn.disabled=false;
-   playPauseBtn.disabled=true;playPauseBtn.textContent="Assessment complete";
-   playbackSpeedSelect.disabled=true;
-   $("givenName").disabled=true;$("lastName").disabled=true;$("studentClass").disabled=true;
-   questionPanel.style.display="none";
-   playbackStatus.textContent="Assessment complete. Thank you.";
-   restartBtn.style.display=percentage<PASS_THRESHOLD?"inline-block":"none";
+       
+     submitHeading.textContent = "Submission confirmed";
+     submitMessage.textContent = "Your results were recorded successfully.";
+     statusBox.textContent=`Your score: ${score} / ${QUESTIONS.length} (${percentage}%).`;
+     submitBtn.hidden=true;submitBtn.disabled=false;
+     playPauseBtn.disabled=true;playPauseBtn.textContent="Assessment complete";
+     playbackSpeedSelect.disabled=true;
+     $("givenName").disabled=true;$("lastName").disabled=true;$("studentClass").disabled=true;
+     questionPanel.style.display="none";
+     playbackStatus.textContent="Assessment complete. Thank you.";
+     restartBtn.style.display=percentage<PASS_THRESHOLD?"inline-block":"none";
    if(percentage<PASS_THRESHOLD)
     submitMessage.textContent="Your score is below 80%. Restart the quiz and try again.";
    clearInterval(monitorInterval);monitorInterval=null;
@@ -441,7 +508,11 @@ submitBtn.addEventListener("click",submitAnswers);
 restartBtn.addEventListener("click",()=>{
  if(!submitted||submissionInProgress||!playerReady)return;
  attemptNumber++;submitted=false;submissionInProgress=false;assessmentStarted=false;
- currentQuestion=-1;answers=Array(QUESTIONS.length).fill(-1);currentOptionMap=[];
+
+currentQuestion = -1;
+answers = Array(QUESTIONS.length).fill(-1);
+currentOptionMap = [];
+optionOrders = Array(QUESTIONS.length).fill(null);
  clearTimeout(correctionTimer);correctingSeek=false;
  $("givenName").value="";$("lastName").value="";
  $("givenName").disabled=false;$("lastName").disabled=false;$("studentClass").disabled=false;
